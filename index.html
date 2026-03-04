@@ -1,0 +1,1392 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>나를 응원하는 한마디 🌟</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Nanum+Pen+Script&family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
+
+:root {
+  --bg: #FFF9F0;
+  --warm: #FF8C42;
+  --warm-light: #FFB347;
+  --warm-pale: #FFF0D9;
+  --sky: #5BA4CF;
+  --sky-light: #A8D5F5;
+  --mint: #52B788;
+  --lavender: #C9B1FF;
+  --rose: #FF7096;
+  --text-dark: #2D2D2D;
+  --text-mid: #5A5A5A;
+  --text-light: #9A9A9A;
+  --shadow: 0 4px 20px rgba(0,0,0,0.08);
+  --shadow-hover: 0 8px 32px rgba(0,0,0,0.15);
+  --radius: 16px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Noto Sans KR', sans-serif;
+  background: var(--bg);
+  background-image:
+    radial-gradient(circle at 10% 20%, rgba(255,140,66,0.08) 0%, transparent 50%),
+    radial-gradient(circle at 90% 80%, rgba(91,164,207,0.08) 0%, transparent 50%);
+  min-height: 100vh;
+  color: var(--text-dark);
+  overflow-x: hidden;
+}
+
+/* ===== 접근성: 시각적으로 숨김 ===== */
+.visually-hidden {
+  position: absolute;
+  width: 1px; height: 1px;
+  margin: -1px; padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ===== 접근성: 포커스 스타일 ===== */
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+.phrase-card:focus-visible,
+.tpl-thumb:focus-visible {
+  outline: 3px solid var(--warm);
+  outline-offset: 2px;
+}
+
+fieldset {
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+
+legend {
+  padding: 0;
+  margin: 0;
+}
+
+/* ===== 상단 고정 헤더 ===== */
+.sticky-top {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(255,249,240,0.96);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+  padding-bottom: 4px;
+}
+.header {
+  text-align: center;
+  padding: 14px 20px 6px;
+}
+.header .emoji-top {
+  font-size: 28px;
+  display: inline-block;
+  margin-right: 8px;
+  animation: float 3s ease-in-out infinite;
+  vertical-align: middle;
+}
+@keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
+.header h1 {
+  display: inline;
+  font-family: 'Nanum Pen Script', cursive;
+  font-size: clamp(20px, 5vw, 30px);
+  color: var(--warm);
+  letter-spacing: 2px;
+  vertical-align: middle;
+}
+.header .subtitle {
+  font-size: 12px;
+  color: var(--text-light);
+  margin-top: 2px;
+  font-weight: 300;
+}
+
+/* ===== 진행 스텝 ===== */
+.progress-bar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 8px 20px 4px;
+  max-width: 560px;
+  margin: 0 auto;
+}
+.step-dot {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700;
+  transition: all 0.4s ease;
+  background: #E8E8E8;
+  color: var(--text-light);
+  flex-shrink: 0;
+}
+.step-dot.active { background: var(--warm); color: white; box-shadow: 0 0 0 4px rgba(255,140,66,0.2); transform: scale(1.1); }
+.step-dot.done { background: var(--mint); color: white; }
+.step-dot.done .dot-num::before { content: '✓'; }
+.step-dot.done .dot-num { font-size: 0; }
+.step-dot.done .dot-num::before { font-size: 13px; }
+.step-line { flex: 1; height: 3px; background: #E8E8E8; transition: background 0.4s; max-width: 60px; }
+.step-line.done { background: var(--mint); }
+.step-label {
+  display: flex; justify-content: space-between;
+  max-width: 560px; margin: 2px auto 0;
+  padding: 0 8px;
+}
+.step-label span { flex:1; text-align:center; font-size:10px; color:var(--text-light); }
+.step-label span.active-label { color:var(--warm); font-weight:700; }
+
+/* ===== 컨테이너 ===== */
+.container { max-width: 720px; margin: 0 auto; padding: 20px 16px 80px; }
+
+/* ===== 화면 전환 ===== */
+.screen { display: none; animation: fadeUp 0.45s ease forwards; }
+.screen.active { display: block; }
+@keyframes fadeUp { from{opacity:0;transform:translateY(18px)} to{opacity:1;transform:translateY(0)} }
+
+/* ===== 안내 카드 ===== */
+.guide-card {
+  background: white; border-radius: var(--radius);
+  padding: 20px 24px; margin-bottom: 20px;
+  box-shadow: var(--shadow); border-left: 5px solid var(--warm);
+  position: relative; overflow: hidden;
+}
+.guide-card::before {
+  content:''; position:absolute; top:-20px; right:-20px;
+  width:80px; height:80px; background:var(--warm-pale);
+  border-radius:50%; opacity:0.6;
+}
+.guide-card h2 { font-size:17px; color:var(--warm); margin-bottom:6px; position:relative; }
+.guide-card p { font-size:13px; color:var(--text-mid); line-height:1.7; position:relative; }
+
+/* ===== STEP1: 문구 그리드 ===== */
+.phrase-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(165px, 1fr));
+  gap: 10px; margin-bottom: 20px;
+}
+.phrase-card {
+  background: white; border: 2.5px solid #E8E8E8; border-radius: 14px;
+  padding: 14px 12px; text-align: center; cursor: pointer;
+  transition: all 0.22s ease; font-size: 13.5px; font-weight: 500;
+  color: var(--text-mid); line-height: 1.5; position: relative;
+  user-select: none; min-height: 68px;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+.phrase-card:hover { border-color:var(--warm-light); transform:translateY(-3px); box-shadow:var(--shadow-hover); color:var(--warm); }
+.phrase-card.selected {
+  background: linear-gradient(135deg, var(--warm), var(--warm-light));
+  border-color: var(--warm); color: white;
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 8px 24px rgba(255,140,66,0.35); font-weight: 700;
+}
+.phrase-card.selected::after { content:'✓'; position:absolute; top:5px; right:9px; font-size:11px; opacity:0.8; }
+.phrase-card:nth-child(3n+1):not(.selected) { border-top: 3px solid var(--sky-light); }
+.phrase-card:nth-child(3n+2):not(.selected) { border-top: 3px solid #FFD6E0; }
+.phrase-card:nth-child(3n+3):not(.selected) { border-top: 3px solid #D4EDDA; }
+
+.selection-count { text-align:center; font-size:13px; color:var(--text-light); margin-bottom:14px; }
+.selection-count strong { color:var(--warm); font-size:15px; }
+
+.random-btn {
+  display:flex; align-items:center; justify-content:center; gap:8px;
+  width:100%; padding:13px;
+  background: linear-gradient(135deg, var(--lavender), #B5D5FF);
+  border:none; border-radius:12px;
+  font-family:'Noto Sans KR',sans-serif; font-size:14px; font-weight:600; color:white;
+  cursor:pointer; margin-bottom:14px; transition:all 0.2s;
+  box-shadow: 0 4px 16px rgba(201,177,255,0.4);
+}
+.random-btn:hover { transform:translateY(-2px); }
+
+/* ===== 랜덤 팝업 ===== */
+.random-popup {
+  display:none; position:fixed; inset:0; z-index:1000;
+  align-items:center; justify-content:center;
+  background:rgba(0,0,0,0.42); backdrop-filter:blur(4px);
+}
+.random-popup.show { display:flex; animation:fadeIn 0.3s ease; }
+@keyframes fadeIn { from{opacity:0} to{opacity:1} }
+.popup-inner {
+  background:white; border-radius:24px; padding:36px 32px;
+  text-align:center; max-width:300px; width:88%;
+  box-shadow:0 20px 60px rgba(0,0,0,0.2);
+  animation:popIn 0.4s cubic-bezier(0.34,1.56,0.64,1);
+}
+@keyframes popIn { from{transform:scale(0.7);opacity:0} to{transform:scale(1);opacity:1} }
+.popup-emoji { font-size:44px; display:block; margin-bottom:10px; }
+.popup-phrase { font-family:'Nanum Pen Script',cursive; font-size:26px; color:var(--warm); line-height:1.4; margin-bottom:18px; }
+.popup-btns { display:flex; gap:8px; justify-content:center; flex-wrap:wrap; }
+.popup-btn { padding:9px 16px; border-radius:10px; border:none; font-family:'Noto Sans KR',sans-serif; font-size:13px; font-weight:600; cursor:pointer; transition:all 0.2s; }
+.popup-btn.primary { background:var(--warm); color:white; }
+.popup-btn.secondary { background:#F0F0F0; color:var(--text-mid); }
+
+/* ===== STEP2: 나만의 문구 ===== */
+.my-phrase-section { background:white; border-radius:var(--radius); padding:24px; box-shadow:var(--shadow); margin-bottom:20px; }
+.my-phrase-section h3 { font-size:15px; color:var(--text-dark); margin-bottom:14px; }
+.my-phrase-input {
+  width:100%; border:2.5px solid #E8E8E8; border-radius:12px;
+  padding:12px 14px; font-family:'Nanum Pen Script',cursive; font-size:19px;
+  color:var(--text-dark); outline:none; transition:border-color 0.2s;
+  background:var(--bg); resize:none; min-height:72px;
+}
+.my-phrase-input:focus { border-color:var(--sky); }
+.my-phrase-input::placeholder { color:var(--text-light); font-size:15px; }
+.add-phrase-btn { margin-top:10px; padding:9px 22px; background:var(--sky); color:white; border:none; border-radius:10px; font-family:'Noto Sans KR',sans-serif; font-size:13px; font-weight:600; cursor:pointer; transition:all 0.2s; }
+.add-phrase-btn:hover { background:#4A93BF; }
+.my-phrases-list { margin-top:14px; display:flex; flex-wrap:wrap; gap:7px; }
+.my-phrase-tag {
+  background:linear-gradient(135deg, var(--sky), var(--sky-light));
+  color:white; padding:7px 13px; border-radius:20px;
+  font-size:13px; font-weight:600;
+  display:flex; align-items:center; gap:5px;
+  animation:fadeUp 0.3s ease;
+}
+.remove-tag {
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  opacity: 0.7;
+  font-size: 11px;
+  padding: 0;
+  margin-left: 2px;
+  transition: opacity 0.2s;
+}
+.remove-tag:hover { opacity:1; }
+.remove-tag:focus-visible {
+  outline: 2px solid white;
+  outline-offset: 1px;
+  border-radius: 2px;
+}
+
+/* ===== STEP3: 결과 확인 ===== */
+.result-section { background:white; border-radius:var(--radius); padding:28px 24px; box-shadow:var(--shadow); margin-bottom:20px; }
+.result-title { text-align:center; font-family:'Nanum Pen Script',cursive; font-size:24px; color:var(--warm); margin-bottom:6px; }
+.result-subtitle { text-align:center; font-size:12px; color:var(--text-light); margin-bottom:24px; }
+.result-cards { display:flex; flex-wrap:wrap; gap:9px; justify-content:center; margin-bottom:24px; }
+.result-chip { padding:9px 16px; border-radius:30px; font-size:13px; font-weight:600; color:white; background:linear-gradient(135deg,var(--warm),var(--warm-light)); box-shadow:0 3px 12px rgba(255,140,66,0.3); }
+.result-chip.custom { background:linear-gradient(135deg,var(--sky),var(--sky-light)); box-shadow:0 3px 12px rgba(91,164,207,0.3); }
+.result-empty { text-align:center; color:var(--text-light); font-size:14px; padding:20px; }
+
+/* ===== STEP3: 완료 버튼 ===== */
+.finish-btn {
+  width:100%; padding:18px;
+  background: linear-gradient(135deg, #FF8C42, #FF6B9D);
+  border:none; border-radius:14px;
+  font-family:'Noto Sans KR',sans-serif; font-size:16px; font-weight:700;
+  color:white; cursor:pointer; transition:all 0.25s;
+  box-shadow: 0 6px 20px rgba(255,107,157,0.4);
+  letter-spacing:1px;
+}
+.finish-btn:hover { transform:translateY(-3px); box-shadow:0 10px 28px rgba(255,107,157,0.5); }
+
+/* ===== STEP4: 학반/번호/이름 입력 ===== */
+.info-form { background:white; border-radius:var(--radius); padding:28px 24px; box-shadow:var(--shadow); margin-bottom:20px; }
+.info-form h3 { font-size:16px; color:var(--text-dark); margin-bottom:18px; text-align:center; }
+.info-row { display:flex; gap:10px; margin-bottom:12px; flex-wrap:wrap; }
+.info-group { flex:1; min-width:80px; }
+.info-group label { display:block; font-size:12px; font-weight:600; color:var(--text-mid); margin-bottom:6px; }
+.info-input {
+  width:100%; border:2px solid #E8E8E8; border-radius:10px;
+  padding:11px 13px; font-family:'Noto Sans KR',sans-serif; font-size:15px;
+  color:var(--text-dark); outline:none; transition:border-color 0.2s; background:var(--bg);
+}
+.info-input:focus { border-color:var(--warm); }
+.info-input::placeholder { color:var(--text-light); font-size:13px; }
+
+/* ===== STEP4: 템플릿 선택 ===== */
+.template-section { margin-bottom:20px; }
+.template-section h3 { font-size:15px; color:var(--text-dark); margin-bottom:14px; font-weight:700; }
+.template-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.tpl-thumb {
+  border-radius:12px; overflow:hidden; cursor:pointer;
+  border:3px solid transparent; transition:all 0.2s;
+  box-shadow:0 2px 8px rgba(0,0,0,0.08);
+  aspect-ratio: 3/4;
+  position:relative;
+}
+.tpl-thumb:hover { transform:translateY(-3px); box-shadow:var(--shadow-hover); }
+.tpl-thumb.active { border-color:var(--warm); box-shadow:0 0 0 3px rgba(255,140,66,0.25); }
+.tpl-thumb canvas { width:100%; height:100%; display:block; }
+.tpl-label { text-align:center; font-size:11px; color:var(--text-mid); margin-top:5px; font-weight:500; }
+
+/* ===== STEP4: 카드 미리보기 ===== */
+.card-preview-wrap {
+  background:white; border-radius:var(--radius); padding:20px;
+  box-shadow:var(--shadow); margin-bottom:20px; text-align:center;
+}
+.card-preview-wrap h3 { font-size:14px; color:var(--text-mid); margin-bottom:14px; }
+#cardCanvas {
+  border-radius:12px; box-shadow:0 4px 20px rgba(0,0,0,0.12);
+  max-width:100%; display:block; margin:0 auto;
+}
+
+/* ===== 버튼 공통 ===== */
+.btn-row { display:flex; gap:10px; margin-top:6px; }
+.btn { flex:1; padding:15px; border-radius:13px; border:none; font-family:'Noto Sans KR',sans-serif; font-size:14px; font-weight:700; cursor:pointer; transition:all 0.22s; letter-spacing:0.3px; }
+.btn-prev { background:#F0F0F0; color:var(--text-mid); flex:0 0 auto; padding:15px 20px; }
+.btn-prev:hover { background:#E4E4E4; }
+.btn-next { background:linear-gradient(135deg,var(--warm),var(--warm-light)); color:white; box-shadow:0 4px 16px rgba(255,140,66,0.35); }
+.btn-next:hover { transform:translateY(-2px); }
+.btn-save { background:linear-gradient(135deg,#52B788,#7FCCAA); color:white; box-shadow:0 4px 16px rgba(82,183,136,0.35); }
+.btn-print { background:linear-gradient(135deg,var(--sky),#7FBADF); color:white; box-shadow:0 4px 16px rgba(91,164,207,0.35); }
+.btn:hover { transform:translateY(-2px); }
+.btn:active { transform:scale(0.97); }
+
+@media (max-width:480px) {
+  .phrase-grid { grid-template-columns:repeat(2,1fr); }
+  .template-grid { grid-template-columns:repeat(2,1fr); }
+  .btn-row { flex-direction:column; }
+  .btn-prev { order:2; }
+  .btn-next,.btn-save,.btn-print { order:1; }
+}
+</style>
+</head>
+<body>
+
+<!-- ===== 고정 헤더 ===== -->
+<div class="sticky-top">
+  <div class="header">
+    <span class="emoji-top" aria-hidden="true">🌟</span>
+    <h1>나를 응원하는 한마디</h1>
+    <p class="subtitle">오늘 나에게 필요한 말을 찾아봐요</p>
+  </div>
+  <nav class="progress-bar" id="progressBar" role="navigation" aria-label="진행 단계">
+    <div class="step-dot active" id="dot1" role="status" aria-label="1단계: 문구선택 (현재 단계)"><span class="dot-num">1</span></div>
+    <div class="step-line" id="line1" aria-hidden="true"></div>
+    <div class="step-dot" id="dot2" role="status" aria-label="2단계: 나만의말"><span class="dot-num">2</span></div>
+    <div class="step-line" id="line2" aria-hidden="true"></div>
+    <div class="step-dot" id="dot3" role="status" aria-label="3단계: 결과확인"><span class="dot-num">3</span></div>
+    <div class="step-line" id="line3" aria-hidden="true"></div>
+    <div class="step-dot" id="dot4" role="status" aria-label="4단계: 카드꾸미기"><span class="dot-num">4</span></div>
+  </nav>
+  <div class="step-label" aria-hidden="true">
+    <span class="active-label" id="label1">문구선택</span>
+    <span id="label2">나만의말</span>
+    <span id="label3">결과확인</span>
+    <span id="label4">카드꾸미기</span>
+  </div>
+</div>
+
+<!-- ===== 메인 컨테이너 ===== -->
+<div class="container">
+
+  <!-- ===== STEP 1: 문구 선택 ===== -->
+  <div class="screen active" id="screen1" role="main" aria-labelledby="step1-title">
+    <div class="guide-card">
+      <h2 id="step1-title">✨ 마음에 드는 문구를 골라요!</h2>
+      <p>17가지 응원 문구 중에서 <strong>지금 나에게 필요한 말</strong>을 자유롭게 선택해요.<br>여러 개 골라도 좋아요 😊</p>
+    </div>
+    <button class="random-btn" onclick="showRandom()" aria-label="랜덤으로 응원 문구 추천받기">✨ 지금 나에게 필요한 말은? (랜덤 추천)</button>
+    <div class="selection-count" role="status" aria-live="polite"><strong id="countNum">0</strong>개 선택됨</div>
+    <div class="phrase-grid" id="phraseGrid" role="group" aria-label="응원 문구 목록"></div>
+    <div class="btn-row">
+      <button class="btn btn-next" onclick="goStep(2)" aria-label="다음 단계: 나만의 문구 작성하기">나만의 문구도 쓸게요 →</button>
+    </div>
+  </div>
+
+  <!-- ===== STEP 2: 나만의 문구 ===== -->
+  <div class="screen" id="screen2" role="main" aria-labelledby="step2-title">
+    <div class="guide-card" style="border-left-color:var(--sky)">
+      <h2 id="step2-title" style="color:var(--sky)">✏️ 나만의 응원 문구</h2>
+      <p>17가지 외에 <strong>나에게 꼭 필요한 말</strong>이 있다면 직접 적어봐요.<br>없으면 바로 넘어가도 괜찮아요!</p>
+    </div>
+    <div class="my-phrase-section">
+      <h3>💬 직접 응원 문구 쓰기</h3>
+      <label for="myPhraseInput" class="visually-hidden">나만의 응원 문구 입력</label>
+      <textarea class="my-phrase-input" id="myPhraseInput" placeholder="예) 오늘도 열심히 했어, 잘했어!" rows="2" aria-describedby="phrase-help"></textarea>
+      <span id="phrase-help" class="visually-hidden">Enter 키를 눌러 문구를 추가할 수 있습니다</span>
+      <button class="add-phrase-btn" onclick="addMyPhrase()" aria-label="나만의 문구 추가하기">+ 추가하기</button>
+      <div class="my-phrases-list" id="myPhrasesList" role="list" aria-label="추가된 나만의 문구 목록"></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-prev" onclick="goStep(1)" aria-label="이전 단계: 문구 선택으로 돌아가기">← 이전</button>
+      <button class="btn btn-next" onclick="goStep(3)" aria-label="다음 단계: 결과 확인하기">결과 확인하기 →</button>
+    </div>
+  </div>
+
+  <!-- ===== STEP 3: 결과 확인 ===== -->
+  <div class="screen" id="screen3" role="main" aria-labelledby="step3-title">
+    <div class="guide-card" style="border-left-color:var(--mint)">
+      <h2 id="step3-title" style="color:var(--mint)">🎉 내가 고른 응원 문구</h2>
+      <p>선택한 문구들을 확인하고, <strong>완료하기</strong>를 눌러 나만의 응원 카드를 만들어요!</p>
+    </div>
+    <div class="result-section">
+      <div class="result-title">🌟 나를 응원하는 말 🌟</div>
+      <div class="result-subtitle" id="resultDate"></div>
+      <div class="result-cards" id="resultCards" role="list" aria-label="선택한 응원 문구 목록"></div>
+    </div>
+    <button class="finish-btn" onclick="goStep(4)" aria-label="완료하고 응원 카드 만들기">🎨 완료! 응원 카드 만들기 →</button>
+    <div style="text-align:center;margin-top:12px;">
+      <button class="btn btn-prev" style="background:none;border:none;color:var(--text-light);font-size:13px;cursor:pointer;text-decoration:underline;font-family:'Noto Sans KR',sans-serif;" onclick="goStep(2)" aria-label="이전 단계로 돌아가기">← 이전으로</button>
+    </div>
+  </div>
+
+  <!-- ===== STEP 4: 학반/이름 입력 + 카드 꾸미기 ===== -->
+  <div class="screen" id="screen4" role="main" aria-labelledby="step4-title">
+    <div class="guide-card" style="border-left-color:var(--lavender)">
+      <h2 id="step4-title" style="color:#9B7FD4">🎨 나만의 응원 카드 만들기</h2>
+      <p>학반과 이름을 쓰고, 마음에 드는 <strong>카드 템플릿</strong>을 골라봐요!<br>완성된 카드는 <strong>이미지 저장</strong>하거나 <strong>인쇄</strong>할 수 있어요.</p>
+    </div>
+
+    <!-- 학반/번호/이름 입력 -->
+    <fieldset class="info-form">
+      <legend><h3>✏️ 내 정보를 입력해요</h3></legend>
+      <div class="info-row">
+        <div class="info-group">
+          <label for="infoClass">학년·반</label>
+          <input class="info-input" id="infoClass" type="text" placeholder="예) 3학년 2반" maxlength="10" oninput="renderCard()" aria-label="학년과 반 입력">
+        </div>
+        <div class="info-group" style="max-width:80px">
+          <label for="infoNum">번호</label>
+          <input class="info-input" id="infoNum" type="text" placeholder="예) 7" maxlength="3" oninput="renderCard()" aria-label="번호 입력">
+        </div>
+        <div class="info-group">
+          <label for="infoName">이름</label>
+          <input class="info-input" id="infoName" type="text" placeholder="이름을 써요" maxlength="8" oninput="renderCard()" aria-label="이름 입력">
+        </div>
+      </div>
+    </fieldset>
+
+    <!-- 템플릿 선택 -->
+    <div class="template-section">
+      <h3>🖼️ 카드 템플릿을 골라요</h3>
+      <div class="template-grid" id="templateGrid" role="radiogroup" aria-label="카드 템플릿 선택"></div>
+    </div>
+
+    <!-- 카드 미리보기 -->
+    <div class="card-preview-wrap">
+      <h3>👀 완성된 카드 미리보기</h3>
+      <canvas id="cardCanvas" width="480" height="640" role="img" aria-label="응원 카드 미리보기"></canvas>
+    </div>
+
+    <!-- 저장/인쇄 버튼 -->
+    <div class="btn-row">
+      <button class="btn btn-prev" onclick="goStep(3)" aria-label="이전 단계로 돌아가기">← 이전</button>
+      <button class="btn btn-save" onclick="saveImage()" aria-label="응원 카드를 이미지로 저장하기">📥 이미지 저장</button>
+      <button class="btn btn-print" onclick="printCard()" aria-label="응원 카드 인쇄하기">🖨️ 인쇄하기</button>
+    </div>
+    <div style="text-align:center;margin-top:14px;">
+      <button onclick="resetAll()" style="background:none;border:none;color:var(--text-light);font-size:12px;cursor:pointer;text-decoration:underline;font-family:'Noto Sans KR',sans-serif;" aria-label="처음부터 다시 시작하기">처음부터 다시 하기</button>
+    </div>
+  </div>
+
+</div><!-- /container -->
+
+<!-- ===== 랜덤 팝업 ===== -->
+<div class="random-popup" id="randomPopup" onclick="closePopup(event)" role="dialog" aria-labelledby="popup-title" aria-modal="true">
+  <div class="popup-inner">
+    <span class="popup-emoji" id="popupEmoji" aria-hidden="true">⭐</span>
+    <div class="popup-phrase" id="popupPhrase" role="heading" aria-level="2"></div>
+    <div class="popup-btns">
+      <button class="popup-btn primary" onclick="selectFromPopup()" aria-label="이 문구 선택하기">✓ 선택하기</button>
+      <button class="popup-btn secondary" onclick="showRandom()" aria-label="다른 문구 보기">🔄 다른 말</button>
+      <button class="popup-btn secondary" onclick="closeRandom()" aria-label="팝업 닫기">✕ 닫기</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ===========================
+   데이터
+=========================== */
+const SELF_AFFIRMATIONS = [
+  "넌 참 배우려는 의지가 강하구나",
+  "시도를 멈추지 않는 한 실패란 없는 거야",
+  "참 용기가 대단하구나",
+  "참 신중하구나",
+  "네가 자랑스러워",
+  "누구나 넘어질 때가 있지",
+  "넌 할 수 있어",
+  "스스로 해내는 독립심이 강하구나",
+  "최선을 다했잖아",
+  "한다면 끝까지 하는구나",
+  "너한테 열정이 느껴져",
+  "실수 오케이(OK)",
+  "포기하지 마",
+  "앞으로가 기대돼",
+  "걱정 마 잘 될 거야",
+  "재능이 참 많네",
+  "다시 시작해 보는 거야"
+];
+const EMOJIS = ['⭐','🌟','💪','🎯','🌈','✨','🔥','💡','🎊','🌸','🏆','💖','🦋','🌺','🎈'];
+
+/* ===========================
+   6가지 카드 템플릿 정의
+   각 템플릿: { name, draw(ctx, w, h, data) }
+=========================== */
+const TEMPLATES = [
+  {
+    name: '🌸 봄꽃 정원',
+    /* 따뜻한 분홍-살구 그라디언트, 꽃 장식 */
+    draw(ctx, w, h, d) {
+      /* 배경 */
+      const bg = ctx.createLinearGradient(0, 0, w, h);
+      bg.addColorStop(0, '#FFE8F0'); bg.addColorStop(1, '#FFD4A8');
+      ctx.fillStyle = bg; ctx.fillRect(0, 0, w, h);
+      /* 꽃 패턴 */
+      drawFlowers(ctx, w, h, ['#FFB3C6','#FF85A1','#FFC8A0','#FFE4B5'], 18);
+      /* 카드 틀 */
+      drawRoundRect(ctx, 30, 30, w-60, h-60, 24, 'rgba(255,255,255,0.55)', '#FFB3C6', 3);
+      /* 상단 이모지 */
+      drawEmoji(ctx, '🌸', w/2, 100, 52);
+      /* 제목 */
+      drawText(ctx, '나를 응원하는 말', w/2, 158, 22, '#D4607A', 'bold', 'Nanum Pen Script');
+      /* 학생 정보 */
+      drawStudentInfo(ctx, d, w, 210);
+      /* 문구들 */
+      drawPhrases(ctx, d.phrases, w, 270, h-100, '#C04070', '#FFE8F0');
+      /* 하단 다짐 */
+      drawPromise(ctx, d, w, h-90, '#D4607A');
+      /* 날짜 */
+      drawDate(ctx, w, h-34, '#E89AB0');
+    }
+  },
+  {
+    name: '🌊 바다 하늘',
+    draw(ctx, w, h, d) {
+      const bg = ctx.createLinearGradient(0, 0, 0, h);
+      bg.addColorStop(0, '#C8E6FF'); bg.addColorStop(1, '#E0F4FF');
+      ctx.fillStyle = bg; ctx.fillRect(0, 0, w, h);
+      drawWaves(ctx, w, h);
+      drawRoundRect(ctx, 30, 30, w-60, h-60, 24, 'rgba(255,255,255,0.60)', '#A8D4F5', 3);
+      drawEmoji(ctx, '🌊', w/2, 100, 52);
+      drawText(ctx, '나를 응원하는 말', w/2, 158, 22, '#2A6FA8', 'bold', 'Nanum Pen Script');
+      drawStudentInfo(ctx, d, w, 210);
+      drawPhrases(ctx, d.phrases, w, 270, h-100, '#1A5F9A', '#C8E6FF');
+      drawPromise(ctx, d, w, h-90, '#2A6FA8');
+      drawDate(ctx, w, h-34, '#6AAFE0');
+    }
+  },
+  {
+    name: '🌿 초록 숲속',
+    draw(ctx, w, h, d) {
+      const bg = ctx.createLinearGradient(0, 0, w, h);
+      bg.addColorStop(0, '#D4EDDA'); bg.addColorStop(1, '#B8DECA');
+      ctx.fillStyle = bg; ctx.fillRect(0, 0, w, h);
+      drawLeaves(ctx, w, h);
+      drawRoundRect(ctx, 30, 30, w-60, h-60, 24, 'rgba(255,255,255,0.58)', '#7FCC9A', 3);
+      drawEmoji(ctx, '🌿', w/2, 100, 52);
+      drawText(ctx, '나를 응원하는 말', w/2, 158, 22, '#2D8A50', 'bold', 'Nanum Pen Script');
+      drawStudentInfo(ctx, d, w, 210);
+      drawPhrases(ctx, d.phrases, w, 270, h-100, '#1D7040', '#D4EDDA');
+      drawPromise(ctx, d, w, h-90, '#2D8A50');
+      drawDate(ctx, w, h-34, '#72B887');
+    }
+  },
+  {
+    name: '⭐ 반짝 별빛',
+    draw(ctx, w, h, d) {
+      const bg = ctx.createLinearGradient(0, 0, 0, h);
+      bg.addColorStop(0, '#1A1A3E'); bg.addColorStop(0.5, '#2D1B5E'); bg.addColorStop(1, '#1A1A3E');
+      ctx.fillStyle = bg; ctx.fillRect(0, 0, w, h);
+      drawStars(ctx, w, h);
+      drawRoundRect(ctx, 30, 30, w-60, h-60, 24, 'rgba(255,255,255,0.08)', '#9B7FD4', 2);
+      drawEmoji(ctx, '⭐', w/2, 100, 52);
+      drawText(ctx, '나를 응원하는 말', w/2, 158, 22, '#E0C4FF', 'bold', 'Nanum Pen Script');
+      drawStudentInfo(ctx, d, w, 210, '#D0B8FF');
+      drawPhrases(ctx, d.phrases, w, 270, h-100, '#F0E0FF', '#2A1A4E');
+      drawPromise(ctx, d, w, h-90, '#D0B8FF');
+      drawDate(ctx, w, h-34, '#8B68CC');
+    }
+  },
+  {
+    name: '🌈 무지개 빛',
+    draw(ctx, w, h, d) {
+      ctx.fillStyle = '#FFFDE7'; ctx.fillRect(0, 0, w, h);
+      drawRainbow(ctx, w, h);
+      drawRoundRect(ctx, 30, 30, w-60, h-60, 24, 'rgba(255,255,255,0.72)', '#FFD700', 3);
+      drawEmoji(ctx, '🌈', w/2, 100, 52);
+      drawText(ctx, '나를 응원하는 말', w/2, 158, 22, '#E07000', 'bold', 'Nanum Pen Script');
+      drawStudentInfo(ctx, d, w, 210);
+      drawPhrasesBubble(ctx, d.phrases, w, 270, h-100);
+      drawPromise(ctx, d, w, h-90, '#E07000');
+      drawDate(ctx, w, h-34, '#FFAA00');
+    }
+  },
+  {
+    name: '🔥 열정 불꽃',
+    draw(ctx, w, h, d) {
+      const bg = ctx.createLinearGradient(0, 0, w, h);
+      bg.addColorStop(0, '#FFF0D9'); bg.addColorStop(1, '#FFE0C0');
+      ctx.fillStyle = bg; ctx.fillRect(0, 0, w, h);
+      drawFirePattern(ctx, w, h);
+      drawRoundRect(ctx, 30, 30, w-60, h-60, 24, 'rgba(255,255,255,0.60)', '#FF8C42', 3);
+      drawEmoji(ctx, '🔥', w/2, 100, 52);
+      drawText(ctx, '나를 응원하는 말', w/2, 158, 22, '#CC4400', 'bold', 'Nanum Pen Script');
+      drawStudentInfo(ctx, d, w, 210);
+      drawPhrases(ctx, d.phrases, w, 270, h-100, '#AA3300', '#FFF0D9');
+      drawPromise(ctx, d, w, h-90, '#CC4400');
+      drawDate(ctx, w, h-34, '#FF8842');
+    }
+  }
+];
+
+/* ===========================
+   Canvas 그리기 헬퍼 함수들
+=========================== */
+
+/* 둥근 사각형 */
+function drawRoundRect(ctx, x, y, w, h, r, fill, stroke, sw=2) {
+  ctx.beginPath();
+  ctx.moveTo(x+r, y);
+  ctx.lineTo(x+w-r, y); ctx.arcTo(x+w,y,x+w,y+r,r);
+  ctx.lineTo(x+w, y+h-r); ctx.arcTo(x+w,y+h,x+w-r,y+h,r);
+  ctx.lineTo(x+r, y+h); ctx.arcTo(x,y+h,x,y+h-r,r);
+  ctx.lineTo(x, y+r); ctx.arcTo(x,y,x+r,y,r);
+  ctx.closePath();
+  if (fill) { ctx.fillStyle = fill; ctx.fill(); }
+  if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = sw; ctx.stroke(); }
+}
+
+/* 이모지 */
+function drawEmoji(ctx, emoji, x, y, size) {
+  ctx.font = `${size}px serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(emoji, x, y);
+}
+
+/* 텍스트 */
+function drawText(ctx, text, x, y, size, color, weight='normal', family='Noto Sans KR') {
+  ctx.font = `${weight} ${size}px '${family}', sans-serif`;
+  ctx.fillStyle = color;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(text, x, y);
+}
+
+/* 학생 정보 */
+function drawStudentInfo(ctx, d, w, y, color='#555') {
+  const cls = d.classInfo || '';
+  const num = d.numInfo || '';
+  const name = d.nameInfo || '';
+  let info = '';
+  if (cls) info += cls;
+  if (num) info += (info?' ':'')+num+'번';
+  if (name) info += (info?' | ':'')+name;
+  if (!info) info = '이름을 입력해요';
+  ctx.font = `700 18px 'Noto Sans KR', sans-serif`;
+  ctx.fillStyle = color;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(info, w/2, y);
+
+  /* 구분선 */
+  ctx.beginPath();
+  ctx.moveTo(60, y+18); ctx.lineTo(w-60, y+18);
+  ctx.strokeStyle = color+'44'; ctx.lineWidth = 1;
+  ctx.stroke();
+}
+
+/* 문구 뱃지 */
+function drawPhrases(ctx, phrases, w, startY, endY, textColor, bgColor) {
+  if (!phrases || phrases.length === 0) {
+    ctx.font = `14px 'Noto Sans KR', sans-serif`;
+    ctx.fillStyle = '#AAA'; ctx.textAlign = 'center';
+    ctx.fillText('문구를 선택해요', w/2, (startY+endY)/2);
+    return;
+  }
+
+  const padding = { x: 16, y: 8 };
+  const gap = { x: 8, y: 10 };
+  const maxW = w - 80;
+  const fontSize = 14;
+  ctx.font = `600 ${fontSize}px 'Noto Sans KR', sans-serif`;
+
+  /* 줄 배치 계산 */
+  const rows = [];
+  let row = [];
+  let rowW = 0;
+  phrases.forEach(p => {
+    const tw = ctx.measureText(p).width + padding.x*2;
+    if (rowW + tw + gap.x > maxW && row.length > 0) {
+      rows.push(row); row = []; rowW = 0;
+    }
+    row.push({ text: p, width: tw });
+    rowW += tw + gap.x;
+  });
+  if (row.length) rows.push(row);
+
+  const rowH = fontSize + padding.y*2;
+  const totalH = rows.length * rowH + (rows.length-1) * gap.y;
+  const midY = (startY + endY) / 2;
+  let curY = midY - totalH/2;
+
+  rows.forEach(rowItems => {
+    const totalW = rowItems.reduce((s, i) => s + i.width, 0) + gap.x*(rowItems.length-1);
+    let curX = (w - totalW) / 2;
+    rowItems.forEach(item => {
+      /* 배경 */
+      ctx.fillStyle = textColor+'22';
+      drawRoundRect(ctx, curX, curY, item.width, rowH, rowH/2, textColor+'22', null);
+      /* 텍스트 */
+      ctx.font = `600 ${fontSize}px 'Noto Sans KR', sans-serif`;
+      ctx.fillStyle = textColor;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(item.text, curX + item.width/2, curY + rowH/2);
+      curX += item.width + gap.x;
+    });
+    curY += rowH + gap.y;
+  });
+}
+
+/* 무지개 버블 문구 */
+function drawPhrasesBubble(ctx, phrases, w, startY, endY) {
+  const bubbleColors = ['#FF6B6B','#FF9F43','#FFC312','#0be881','#48DBFB','#FF9FF3'];
+  if (!phrases || phrases.length === 0) return;
+  const padding = { x: 14, y: 7 };
+  const gap = { x: 8, y: 9 };
+  const maxW = w - 80;
+  const fontSize = 13;
+  ctx.font = `600 ${fontSize}px 'Noto Sans KR', sans-serif`;
+  const rows = [];
+  let row = [], rowW = 0;
+  phrases.forEach(p => {
+    const tw = ctx.measureText(p).width + padding.x*2;
+    if (rowW + tw + gap.x > maxW && row.length > 0) { rows.push(row); row = []; rowW = 0; }
+    row.push({ text: p, width: tw });
+    rowW += tw + gap.x;
+  });
+  if (row.length) rows.push(row);
+  const rowH = fontSize + padding.y*2;
+  const totalH = rows.length * rowH + (rows.length-1) * gap.y;
+  let curY = (startY+endY)/2 - totalH/2;
+  let colorIdx = 0;
+  rows.forEach(rowItems => {
+    const totalW = rowItems.reduce((s,i) => s+i.width, 0) + gap.x*(rowItems.length-1);
+    let curX = (w-totalW)/2;
+    rowItems.forEach(item => {
+      const c = bubbleColors[colorIdx % bubbleColors.length]; colorIdx++;
+      drawRoundRect(ctx, curX, curY, item.width, rowH, rowH/2, c+'33', c, 2);
+      ctx.font = `600 ${fontSize}px 'Noto Sans KR', sans-serif`;
+      ctx.fillStyle = '#444'; ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText(item.text, curX+item.width/2, curY+rowH/2);
+      curX += item.width + gap.x;
+    });
+    curY += rowH + gap.y;
+  });
+}
+
+/* 다짐 */
+function drawPromise(ctx, d, w, y, color) {
+  if (!d.promise) return;
+  ctx.font = `400 13px 'Noto Sans KR', sans-serif`;
+  ctx.fillStyle = color+'99'; ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText('💪 오늘의 다짐', w/2, y-12);
+  ctx.font = `600 15px 'Nanum Pen Script', cursive`;
+  ctx.fillStyle = color; ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText(d.promise, w/2, y+10);
+}
+
+/* 날짜 */
+function drawDate(ctx, w, y, color) {
+  const now = new Date();
+  const s = `${now.getFullYear()}년 ${now.getMonth()+1}월 ${now.getDate()}일`;
+  ctx.font = `300 12px 'Noto Sans KR', sans-serif`;
+  ctx.fillStyle = color; ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText(s, w/2, y);
+}
+
+/* ===== 배경 장식 그리기 함수들 ===== */
+function drawFlowers(ctx, w, h, colors, n) {
+  const rng = seededRng(42);
+  for (let i=0; i<n; i++) {
+    const x=rng()*w, y=rng()*h, r=rng()*12+6;
+    const c = colors[Math.floor(rng()*colors.length)];
+    for (let p=0;p<5;p++) {
+      const a = (p/5)*Math.PI*2;
+      ctx.beginPath();
+      ctx.arc(x+Math.cos(a)*r, y+Math.sin(a)*r, r*0.7, 0, Math.PI*2);
+      ctx.fillStyle = c+'66'; ctx.fill();
+    }
+    ctx.beginPath(); ctx.arc(x,y,r*0.5,0,Math.PI*2);
+    ctx.fillStyle = '#FFF9'; ctx.fill();
+  }
+}
+
+function drawWaves(ctx, w, h) {
+  for (let i=0;i<4;i++) {
+    ctx.beginPath();
+    ctx.moveTo(0, h*0.6+i*30);
+    for (let x=0;x<=w;x+=20) {
+      ctx.lineTo(x, h*0.6+i*30 + Math.sin(x/60+i)*12);
+    }
+    ctx.strokeStyle = `rgba(91,164,207,${0.12-i*0.02})`;
+    ctx.lineWidth = 2; ctx.stroke();
+  }
+}
+
+function drawLeaves(ctx, w, h) {
+  const rng = seededRng(7);
+  for (let i=0;i<14;i++) {
+    const x=rng()*w, y=rng()*h, r=rng()*14+6, a=rng()*Math.PI*2;
+    ctx.save(); ctx.translate(x,y); ctx.rotate(a);
+    ctx.beginPath();
+    ctx.ellipse(0,0,r*0.4,r,0,0,Math.PI*2);
+    ctx.fillStyle = `rgba(82,183,136,${rng()*0.25+0.1})`; ctx.fill();
+    ctx.restore();
+  }
+}
+
+function drawStars(ctx, w, h) {
+  const rng = seededRng(99);
+  for (let i=0;i<80;i++) {
+    const x=rng()*w, y=rng()*h, r=rng()*2+0.5;
+    ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2);
+    ctx.fillStyle = `rgba(255,255,255,${rng()*0.7+0.2})`; ctx.fill();
+  }
+  /* 큰 별 몇 개 */
+  for (let i=0;i<6;i++) {
+    const x=rng()*w, y=rng()*h;
+    ctx.font=`${rng()*10+10}px serif`; ctx.textAlign='center';
+    ctx.fillStyle=`rgba(255,220,100,${rng()*0.5+0.3})`;
+    ctx.fillText('★',x,y);
+  }
+}
+
+function drawRainbow(ctx, w, h) {
+  const colors = ['#FF6B6B','#FF9F43','#FFC312','#A3CB38','#48DBFB','#9B59B6'];
+  colors.forEach((c, i) => {
+    ctx.beginPath();
+    ctx.arc(w/2, h+40, h*0.8-i*28, Math.PI, 0);
+    ctx.strokeStyle = c+'55'; ctx.lineWidth = 22; ctx.stroke();
+  });
+}
+
+function drawFirePattern(ctx, w, h) {
+  const rng = seededRng(13);
+  for (let i=0;i<10;i++) {
+    const x=rng()*w, y=rng()*h;
+    ctx.font=`${rng()*16+10}px serif`; ctx.textAlign='center';
+    ctx.fillStyle=`rgba(255,140,60,${rng()*0.25+0.1})`;
+    ctx.fillText(['🔥','✨','⭐'][Math.floor(rng()*3)],x,y);
+  }
+}
+
+/* 시드 기반 랜덤 (일관된 배경 패턴) */
+function seededRng(seed) {
+  let s = seed;
+  return function() {
+    s = (s*9301+49297)%233280;
+    return s/233280;
+  };
+}
+
+/* ===========================
+   상태 변수
+=========================== */
+let selectedPhrases = new Set();
+let myPhrases = [];
+let currentStep = 1;
+let currentPopupIdx = -1;
+let selectedTemplate = 0;
+
+/* ===========================
+   localStorage 관리
+=========================== */
+const STORAGE_KEY = 'encouragement-card-data';
+
+function saveToStorage() {
+  try {
+    const data = {
+      selectedPhrases: Array.from(selectedPhrases),
+      myPhrases: myPhrases,
+      currentStep: currentStep,
+      selectedTemplate: selectedTemplate,
+      classInfo: document.getElementById('infoClass')?.value || '',
+      numInfo: document.getElementById('infoNum')?.value || '',
+      nameInfo: document.getElementById('infoName')?.value || '',
+      savedAt: new Date().toISOString()
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  } catch (e) {
+    console.warn('localStorage 저장 실패:', e);
+  }
+}
+
+function loadFromStorage() {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (!saved) return false;
+
+    const data = JSON.parse(saved);
+    selectedPhrases = new Set(data.selectedPhrases || []);
+    myPhrases = data.myPhrases || [];
+    currentStep = data.currentStep || 1;
+    selectedTemplate = data.selectedTemplate || 0;
+
+    // 폼 입력값 복원
+    if (data.classInfo) document.getElementById('infoClass').value = data.classInfo;
+    if (data.numInfo) document.getElementById('infoNum').value = data.numInfo;
+    if (data.nameInfo) document.getElementById('infoName').value = data.nameInfo;
+
+    return true;
+  } catch (e) {
+    console.warn('localStorage 불러오기 실패:', e);
+    return false;
+  }
+}
+
+function clearStorage() {
+  try {
+    localStorage.removeItem(STORAGE_KEY);
+  } catch (e) {
+    console.warn('localStorage 삭제 실패:', e);
+  }
+}
+
+/* ===========================
+   초기화
+=========================== */
+function init() {
+  // localStorage에서 데이터 복원
+  const hasData = loadFromStorage();
+
+  initCards();
+  initTemplates();
+
+  // 저장된 데이터가 있으면 해당 스텝으로 이동
+  if (hasData) {
+    renderMyPhrases();
+    goStep(currentStep);
+  } else {
+    updateProgress(1);
+  }
+
+  const now = new Date();
+  document.getElementById('resultDate').textContent =
+    `${now.getFullYear()}년 ${now.getMonth()+1}월 ${now.getDate()}일`;
+
+  // 키보드 네비게이션 초기화
+  initKeyboardNavigation();
+}
+
+/* ===== 문구 카드 초기화 ===== */
+function initCards() {
+  const grid = document.getElementById('phraseGrid');
+  grid.innerHTML = '';
+  SELF_AFFIRMATIONS.forEach((phrase, idx) => {
+    const card = document.createElement('div');
+    card.className = 'phrase-card' + (selectedPhrases.has(idx) ? ' selected' : '');
+    card.textContent = phrase;
+    card.dataset.idx = idx;
+    card.setAttribute('role', 'button');
+    card.setAttribute('tabindex', '0');
+    card.setAttribute('aria-pressed', selectedPhrases.has(idx) ? 'true' : 'false');
+    card.setAttribute('aria-label', `응원 문구: ${phrase}`);
+    card.addEventListener('click', () => toggleCard(idx));
+    card.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        toggleCard(idx);
+      }
+    });
+    grid.appendChild(card);
+  });
+  updateCount();
+}
+
+function toggleCard(idx) {
+  selectedPhrases.has(idx) ? selectedPhrases.delete(idx) : selectedPhrases.add(idx);
+  const card = document.querySelector(`.phrase-card[data-idx="${idx}"]`);
+  if (card) {
+    card.classList.toggle('selected', selectedPhrases.has(idx));
+    card.setAttribute('aria-pressed', selectedPhrases.has(idx) ? 'true' : 'false');
+  }
+  updateCount();
+  saveToStorage();
+}
+function updateCount() { document.getElementById('countNum').textContent = selectedPhrases.size; }
+
+/* ===== 템플릿 썸네일 초기화 ===== */
+function initTemplates() {
+  const grid = document.getElementById('templateGrid');
+  grid.innerHTML = '';
+  TEMPLATES.forEach((tpl, idx) => {
+    const wrap = document.createElement('div');
+    wrap.className = 'tpl-thumb' + (idx === selectedTemplate ? ' active' : '');
+    wrap.dataset.idx = idx;
+    wrap.setAttribute('role', 'radio');
+    wrap.setAttribute('tabindex', idx === selectedTemplate ? '0' : '-1');
+    wrap.setAttribute('aria-checked', idx === selectedTemplate ? 'true' : 'false');
+    wrap.setAttribute('aria-label', `카드 템플릿: ${tpl.name}`);
+
+    /* 썸네일 캔버스 (작은 크기) */
+    const tc = document.createElement('canvas');
+    tc.width = 120; tc.height = 160;
+    const tctx = tc.getContext('2d');
+    tpl.draw(tctx, 120, 160, { phrases: ['응원 문구'], classInfo:'', numInfo:'', nameInfo:'', promise:'' });
+    wrap.appendChild(tc);
+
+    const label = document.createElement('div');
+    label.className = 'tpl-label';
+    label.textContent = tpl.name;
+    label.setAttribute('aria-hidden', 'true');
+    wrap.appendChild(label);
+
+    wrap.addEventListener('click', () => selectTemplate(idx));
+    wrap.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        selectTemplate(idx);
+      } else if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+        e.preventDefault();
+        const newIdx = e.key === 'ArrowLeft'
+          ? (idx - 1 + TEMPLATES.length) % TEMPLATES.length
+          : (idx + 1) % TEMPLATES.length;
+        selectTemplate(newIdx);
+        document.querySelector(`.tpl-thumb[data-idx="${newIdx}"]`)?.focus();
+      }
+    });
+    grid.appendChild(wrap);
+  });
+}
+
+function selectTemplate(idx) {
+  document.querySelectorAll('.tpl-thumb').forEach((t, i) => {
+    t.classList.toggle('active', i === idx);
+    t.setAttribute('tabindex', i === idx ? '0' : '-1');
+    t.setAttribute('aria-checked', i === idx ? 'true' : 'false');
+  });
+  selectedTemplate = idx;
+  renderCard();
+  saveToStorage();
+}
+
+/* ===========================
+   스텝 이동
+=========================== */
+function goStep(step) {
+  if (step === 3) renderResult();
+  if (step === 4) renderCard();
+  currentStep = step;
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(`screen${step}`).classList.add('active');
+  updateProgress(step);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  saveToStorage();
+
+  // 포커스 이동
+  const screen = document.getElementById(`screen${step}`);
+  const firstFocusable = screen?.querySelector('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+  if (firstFocusable) {
+    setTimeout(() => firstFocusable.focus(), 100);
+  }
+}
+
+function updateProgress(step) {
+  const stepNames = ['', '문구선택', '나만의말', '결과확인', '카드꾸미기'];
+  for (let i=1; i<=4; i++) {
+    const dot = document.getElementById(`dot${i}`);
+    const label = document.getElementById(`label${i}`);
+    dot.classList.remove('active','done');
+    label.classList.remove('active-label');
+
+    // ARIA 레이블 업데이트
+    if (i < step) {
+      dot.classList.add('done');
+      dot.setAttribute('aria-label', `${i}단계: ${stepNames[i]} (완료)`);
+    } else if (i === step) {
+      dot.classList.add('active');
+      label.classList.add('active-label');
+      dot.setAttribute('aria-label', `${i}단계: ${stepNames[i]} (현재 단계)`);
+    } else {
+      dot.setAttribute('aria-label', `${i}단계: ${stepNames[i]}`);
+    }
+
+    if (i < 4) document.getElementById(`line${i}`)?.classList.toggle('done', i < step);
+  }
+}
+
+/* ===========================
+   결과 렌더링
+=========================== */
+function renderResult() {
+  const cards = document.getElementById('resultCards');
+  cards.innerHTML = '';
+  const selectedArr = [...selectedPhrases].map(i => SELF_AFFIRMATIONS[i]);
+  const all = [...selectedArr, ...myPhrases];
+  if (all.length === 0) {
+    cards.innerHTML = '<div class="result-empty">아직 선택된 문구가 없어요 😊<br>이전 단계로 돌아가서 골라봐요!</div>';
+    return;
+  }
+  selectedArr.forEach(p => {
+    const c = document.createElement('div');
+    c.className = 'result-chip';
+    c.setAttribute('role', 'listitem');
+    c.textContent = p;
+    cards.appendChild(c);
+  });
+  myPhrases.forEach(p => {
+    const c = document.createElement('div');
+    c.className = 'result-chip custom';
+    c.setAttribute('role', 'listitem');
+    c.textContent = '✏️ '+p;
+    cards.appendChild(c);
+  });
+}
+
+/* ===========================
+   카드 Canvas 렌더링 (STEP4)
+=========================== */
+function renderCard() {
+  const canvas = document.getElementById('cardCanvas');
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width, h = canvas.height;
+
+  /* 데이터 수집 */
+  const selectedArr = [...selectedPhrases].map(i => SELF_AFFIRMATIONS[i]);
+  const all = [...selectedArr, ...myPhrases];
+  const data = {
+    phrases: all,
+    classInfo: document.getElementById('infoClass')?.value.trim() || '',
+    numInfo: document.getElementById('infoNum')?.value.trim() || '',
+    nameInfo: document.getElementById('infoName')?.value.trim() || '',
+    promise: ''  /* STEP3에서 다짐 없어도 OK */
+  };
+
+  /* 선택된 템플릿 그리기 */
+  ctx.clearRect(0, 0, w, h);
+  TEMPLATES[selectedTemplate].draw(ctx, w, h, data);
+
+  // 데이터 자동 저장
+  saveToStorage();
+}
+
+/* ===========================
+   이미지 저장
+=========================== */
+function saveImage() {
+  renderCard();
+  const canvas = document.getElementById('cardCanvas');
+  const name = document.getElementById('infoName')?.value.trim() || '응원카드';
+  const link = document.createElement('a');
+  link.download = `${name}_응원카드.png`;
+  link.href = canvas.toDataURL('image/png');
+  link.click();
+}
+
+/* ===========================
+   인쇄하기
+=========================== */
+function printCard() {
+  renderCard();
+  const canvas = document.getElementById('cardCanvas');
+  const imgData = canvas.toDataURL('image/png');
+  const name = document.getElementById('infoName')?.value.trim() || '나';
+  const cls = document.getElementById('infoClass')?.value.trim() || '';
+  const num = document.getElementById('infoNum')?.value.trim() || '';
+
+  const win = window.open('', '_blank');
+  win.document.write(`<!DOCTYPE html>
+<html lang="ko"><head>
+<meta charset="UTF-8">
+<title>${name}의 응원 카드</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap');
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:'Noto Sans KR',sans-serif; background:#FFF9F0; display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; padding:20px; }
+  .card-wrap { text-align:center; }
+  img { max-width:380px; width:100%; border-radius:16px; box-shadow:0 8px 32px rgba(0,0,0,0.15); }
+  .print-info { margin-top:14px; font-size:13px; color:#888; }
+  .no-print { margin-top:16px; }
+  .no-print button { padding:10px 24px; background:#FF8C42; color:white; border:none; border-radius:10px; font-size:14px; font-weight:700; cursor:pointer; font-family:'Noto Sans KR',sans-serif; }
+  @media print { .no-print { display:none; } body { background:white; } }
+</style>
+</head><body>
+<div class="card-wrap">
+  <img src="${imgData}" alt="${name}의 응원 카드">
+  <div class="print-info">${cls} ${num ? num+'번 ' : ''}${name}</div>
+</div>
+<div class="no-print"><button onclick="window.print()">🖨️ 인쇄하기</button></div>
+</body></html>`);
+  win.document.close();
+  win.focus();
+  setTimeout(() => win.print(), 700);
+}
+
+/* ===========================
+   랜덤 추천
+=========================== */
+function showRandom() {
+  const unselected = SELF_AFFIRMATIONS.map((_,i)=>i).filter(i=>!selectedPhrases.has(i));
+  const pool = unselected.length > 0 ? unselected : SELF_AFFIRMATIONS.map((_,i)=>i);
+  const idx = pool[Math.floor(Math.random()*pool.length)];
+  currentPopupIdx = idx;
+  document.getElementById('popupPhrase').textContent = SELF_AFFIRMATIONS[idx];
+  document.getElementById('popupEmoji').textContent = EMOJIS[Math.floor(Math.random()*EMOJIS.length)];
+  const popup = document.getElementById('randomPopup');
+  popup.classList.add('show');
+
+  // 포커스를 팝업의 첫 버튼으로 이동
+  setTimeout(() => {
+    const firstBtn = popup.querySelector('.popup-btn');
+    if (firstBtn) firstBtn.focus();
+  }, 100);
+}
+function closePopup(e) { if(e.target===document.getElementById('randomPopup')) closeRandom(); }
+function closeRandom() {
+  document.getElementById('randomPopup').classList.remove('show');
+  // 포커스를 랜덤 추천 버튼으로 복귀
+  document.querySelector('.random-btn')?.focus();
+}
+function selectFromPopup() {
+  if (currentPopupIdx >= 0) {
+    selectedPhrases.add(currentPopupIdx);
+    const card = document.querySelector(`.phrase-card[data-idx="${currentPopupIdx}"]`);
+    if (card) {
+      card.classList.add('selected');
+      card.setAttribute('aria-pressed', 'true');
+    }
+    updateCount();
+    saveToStorage();
+  }
+  closeRandom();
+}
+
+/* ===========================
+   나만의 문구
+=========================== */
+function addMyPhrase() {
+  const input = document.getElementById('myPhraseInput');
+  const text = input.value.trim();
+  if (!text) return;
+  myPhrases.push(text);
+  input.value = '';
+  renderMyPhrases();
+  saveToStorage();
+
+  // 스크린 리더 알림
+  const announcement = document.createElement('div');
+  announcement.setAttribute('role', 'status');
+  announcement.setAttribute('aria-live', 'polite');
+  announcement.className = 'visually-hidden';
+  announcement.textContent = `"${text}" 문구가 추가되었습니다.`;
+  document.body.appendChild(announcement);
+  setTimeout(() => announcement.remove(), 1000);
+}
+function renderMyPhrases() {
+  const list = document.getElementById('myPhrasesList');
+  list.innerHTML = '';
+  myPhrases.forEach((phrase, idx) => {
+    const tag = document.createElement('div');
+    tag.className = 'my-phrase-tag';
+    tag.setAttribute('role', 'listitem');
+
+    const textSpan = document.createElement('span');
+    textSpan.textContent = phrase;
+
+    const removeBtn = document.createElement('button');
+    removeBtn.className = 'remove-tag';
+    removeBtn.textContent = '✕';
+    removeBtn.setAttribute('aria-label', `"${phrase}" 문구 삭제하기`);
+    removeBtn.setAttribute('type', 'button');
+    removeBtn.onclick = () => removeMyPhrase(idx);
+
+    tag.appendChild(textSpan);
+    tag.appendChild(removeBtn);
+    list.appendChild(tag);
+  });
+}
+function removeMyPhrase(idx) {
+  const removed = myPhrases[idx];
+  myPhrases.splice(idx, 1);
+  renderMyPhrases();
+  saveToStorage();
+
+  // 스크린 리더 알림
+  const announcement = document.createElement('div');
+  announcement.setAttribute('role', 'status');
+  announcement.setAttribute('aria-live', 'polite');
+  announcement.className = 'visually-hidden';
+  announcement.textContent = `"${removed}" 문구가 삭제되었습니다.`;
+  document.body.appendChild(announcement);
+  setTimeout(() => announcement.remove(), 1000);
+}
+
+/* ===========================
+   Enter 키 추가
+=========================== */
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('myPhraseInput').addEventListener('keydown', e => {
+    if (e.key==='Enter' && !e.shiftKey) { e.preventDefault(); addMyPhrase(); }
+  });
+});
+
+/* ===========================
+   처음부터 다시
+=========================== */
+function resetAll() {
+  if (!confirm('처음부터 다시 시작할까요? 선택한 내용이 모두 사라져요.')) return;
+  selectedPhrases.clear();
+  myPhrases = [];
+  selectedTemplate = 0;
+  document.getElementById('infoClass').value = '';
+  document.getElementById('infoNum').value = '';
+  document.getElementById('infoName').value = '';
+  document.getElementById('myPhraseInput').value = '';
+  renderMyPhrases();
+  initCards();
+  initTemplates();
+  clearStorage();
+  goStep(1);
+}
+
+/* ===========================
+   키보드 네비게이션 초기화
+=========================== */
+function initKeyboardNavigation() {
+  // ESC 키로 팝업 닫기
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      const popup = document.getElementById('randomPopup');
+      if (popup.classList.contains('show')) {
+        closeRandom();
+      }
+    }
+  });
+
+  // 팝업 포커스 트랩
+  const popup = document.getElementById('randomPopup');
+  popup.addEventListener('keydown', (e) => {
+    if (e.key === 'Tab' && popup.classList.contains('show')) {
+      const focusables = popup.querySelectorAll('.popup-btn');
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+
+      if (e.shiftKey) {
+        if (document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        }
+      } else {
+        if (document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    }
+  });
+}
+
+/* ===========================
+   시작
+=========================== */
+init();
+</script>
+</body>
+</html>
