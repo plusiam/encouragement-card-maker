@@ -4,8 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>나를 응원하는 한마디 🌟</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nanum+Pen+Script&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Nanum+Pen+Script&family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
 
 :root {
   --bg: #FFF9F0;
@@ -180,6 +182,7 @@ legend {
   box-shadow: 0 2px 8px rgba(0,0,0,0.04);
 }
 .phrase-card:hover { border-color:var(--warm-light); transform:translateY(-3px); box-shadow:var(--shadow-hover); color:var(--warm); }
+.phrase-card:active { transform: scale(0.97); transition-duration: 0.1s; }
 .phrase-card.selected {
   background: linear-gradient(135deg, var(--warm), var(--warm-light));
   border-color: var(--warm); color: white;
@@ -345,12 +348,49 @@ legend {
 .btn:hover { transform:translateY(-2px); }
 .btn:active { transform:scale(0.97); }
 
+.toast-msg {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+  background: rgba(45,45,45,0.92); color: white;
+  padding: 12px 24px; border-radius: 24px;
+  font-size: 14px; font-weight: 500;
+  z-index: 2000; opacity: 0;
+  animation: toastIn 0.3s ease forwards;
+  pointer-events: none;
+  font-family: 'Noto Sans KR', sans-serif;
+}
+.toast-msg.fade-out { animation: toastOut 0.3s ease forwards; }
+@keyframes toastIn { from{opacity:0;transform:translateX(-50%) translateY(10px)} to{opacity:1;transform:translateX(-50%) translateY(0)} }
+@keyframes toastOut { from{opacity:1;transform:translateX(-50%) translateY(0)} to{opacity:0;transform:translateX(-50%) translateY(10px)} }
+
+@media (max-width:768px) {
+  .phrase-grid { grid-template-columns: repeat(2, 1fr); }
+  .container { padding: 16px 12px 80px; }
+  .btn { font-size: 13px; padding: 13px; }
+}
+
+@media (max-width:600px) {
+  .template-grid { grid-template-columns: repeat(2, 1fr); }
+  .header h1 { letter-spacing: 1px; }
+  .guide-card { padding: 16px 18px; }
+  .guide-card p { font-size: 12px; }
+}
+
 @media (max-width:480px) {
   .phrase-grid { grid-template-columns:repeat(2,1fr); }
   .template-grid { grid-template-columns:repeat(2,1fr); }
   .btn-row { flex-direction:column; }
   .btn-prev { order:2; }
   .btn-next,.btn-save,.btn-print { order:1; }
+}
+
+@media print {
+  .sticky-top, .btn-row, .guide-card, .info-form,
+  .template-section, .random-popup, .random-btn,
+  .selection-count, .my-phrase-section { display: none !important; }
+  .container { padding: 0; max-width: 100%; }
+  .card-preview-wrap { box-shadow: none; padding: 0; }
+  #cardCanvas { max-width: 100%; box-shadow: none; }
+  @page { size: A4 portrait; margin: 1.5cm; }
 }
 </style>
 </head>
@@ -447,15 +487,15 @@ legend {
       <div class="info-row">
         <div class="info-group">
           <label for="infoClass">학년·반</label>
-          <input class="info-input" id="infoClass" type="text" placeholder="예) 3학년 2반" maxlength="10" oninput="renderCard()" aria-label="학년과 반 입력">
+          <input class="info-input" id="infoClass" type="text" placeholder="예) 3학년 2반" maxlength="10" oninput="debouncedRender()" aria-label="학년과 반 입력">
         </div>
         <div class="info-group" style="max-width:80px">
           <label for="infoNum">번호</label>
-          <input class="info-input" id="infoNum" type="text" placeholder="예) 7" maxlength="3" oninput="renderCard()" aria-label="번호 입력">
+          <input class="info-input" id="infoNum" type="text" placeholder="예) 7" maxlength="3" oninput="debouncedRender()" aria-label="번호 입력">
         </div>
         <div class="info-group">
           <label for="infoName">이름</label>
-          <input class="info-input" id="infoName" type="text" placeholder="이름을 써요" maxlength="8" oninput="renderCard()" aria-label="이름 입력">
+          <input class="info-input" id="infoName" type="text" placeholder="이름을 써요" maxlength="8" oninput="debouncedRender()" aria-label="이름 입력">
         </div>
       </div>
     </fieldset>
@@ -596,9 +636,9 @@ const TEMPLATES = [
       drawRoundRect(ctx, 30, 30, w-60, h-60, 24, 'rgba(255,255,255,0.08)', '#9B7FD4', 2);
       drawEmoji(ctx, '⭐', w/2, 100, 52);
       drawText(ctx, '나를 응원하는 말', w/2, 158, 22, '#E0C4FF', 'bold', 'Nanum Pen Script');
-      drawStudentInfo(ctx, d, w, 210, '#D0B8FF');
-      drawPhrases(ctx, d.phrases, w, 270, h-100, '#F0E0FF', '#2A1A4E');
-      drawPromise(ctx, d, w, h-90, '#D0B8FF');
+      drawStudentInfo(ctx, d, w, 210, '#E8D4FF');
+      drawPhrases(ctx, d.phrases, w, 270, h-100, '#FFFFFF', '#2A1A4E');
+      drawPromise(ctx, d, w, h-90, '#E8D4FF');
       drawDate(ctx, w, h-34, '#8B68CC');
     }
   },
@@ -895,6 +935,12 @@ let currentStep = 1;
 let currentPopupIdx = -1;
 let selectedTemplate = 0;
 
+let renderTimer = null;
+function debouncedRender() {
+  clearTimeout(renderTimer);
+  renderTimer = setTimeout(() => { renderCard(); saveToStorage(); }, 300);
+}
+
 /* ===========================
    localStorage 관리
 =========================== */
@@ -903,6 +949,7 @@ const STORAGE_KEY = 'encouragement-card-data';
 function saveToStorage() {
   try {
     const data = {
+      version: 1,
       selectedPhrases: Array.from(selectedPhrases),
       myPhrases: myPhrases,
       currentStep: currentStep,
@@ -924,10 +971,12 @@ function loadFromStorage() {
     if (!saved) return false;
 
     const data = JSON.parse(saved);
-    selectedPhrases = new Set(data.selectedPhrases || []);
-    myPhrases = data.myPhrases || [];
-    currentStep = data.currentStep || 1;
-    selectedTemplate = data.selectedTemplate || 0;
+
+    // Validate data types
+    selectedPhrases = new Set(Array.isArray(data.selectedPhrases) ? data.selectedPhrases : []);
+    myPhrases = Array.isArray(data.myPhrases) ? data.myPhrases : [];
+    currentStep = (typeof data.currentStep === 'number' && data.currentStep >= 1 && data.currentStep <= 4) ? data.currentStep : 1;
+    selectedTemplate = (typeof data.selectedTemplate === 'number' && data.selectedTemplate >= 0 && data.selectedTemplate < 6) ? data.selectedTemplate : 0;
 
     // 폼 입력값 복원
     if (data.classInfo) document.getElementById('infoClass').value = data.classInfo;
@@ -1178,6 +1227,16 @@ function saveImage() {
   link.download = `${name}_응원카드.png`;
   link.href = canvas.toDataURL('image/png');
   link.click();
+  showToast('✓ 이미지가 저장되었어요!');
+}
+
+/* ===========================
+   HTML 이스케이프 (XSS 방지)
+=========================== */
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
 }
 
 /* ===========================
@@ -1187,11 +1246,15 @@ function printCard() {
   renderCard();
   const canvas = document.getElementById('cardCanvas');
   const imgData = canvas.toDataURL('image/png');
-  const name = document.getElementById('infoName')?.value.trim() || '나';
-  const cls = document.getElementById('infoClass')?.value.trim() || '';
-  const num = document.getElementById('infoNum')?.value.trim() || '';
+  const name = escapeHtml(document.getElementById('infoName')?.value.trim() || '나');
+  const cls = escapeHtml(document.getElementById('infoClass')?.value.trim() || '');
+  const num = escapeHtml(document.getElementById('infoNum')?.value.trim() || '');
 
   const win = window.open('', '_blank');
+  if (!win) {
+    alert('팝업이 차단되었어요. 팝업 차단을 해제해 주세요.');
+    return;
+  }
   win.document.write(`<!DOCTYPE html>
 <html lang="ko"><head>
 <meta charset="UTF-8">
@@ -1255,6 +1318,7 @@ function selectFromPopup() {
     updateCount();
     saveToStorage();
   }
+  showToast('✓ 문구가 선택되었어요!');
   closeRandom();
 }
 
@@ -1269,6 +1333,7 @@ function addMyPhrase() {
   input.value = '';
   renderMyPhrases();
   saveToStorage();
+  showToast('✓ 문구가 추가되었어요!');
 
   // 스크린 리더 알림
   const announcement = document.createElement('div');
@@ -1307,6 +1372,7 @@ function removeMyPhrase(idx) {
   myPhrases.splice(idx, 1);
   renderMyPhrases();
   saveToStorage();
+  showToast('문구가 삭제되었어요');
 
   // 스크린 리더 알림
   const announcement = document.createElement('div');
@@ -1393,6 +1459,21 @@ function initKeyboardNavigation() {
       }
     }
   });
+}
+
+/* ===========================
+   토스트 알림
+=========================== */
+function showToast(msg) {
+  const existing = document.querySelector('.toast-msg');
+  if (existing) existing.remove();
+  const el = document.createElement('div');
+  el.className = 'toast-msg';
+  el.textContent = msg;
+  el.setAttribute('role', 'status');
+  el.setAttribute('aria-live', 'polite');
+  document.body.appendChild(el);
+  setTimeout(() => { el.classList.add('fade-out'); setTimeout(() => el.remove(), 300); }, 2000);
 }
 
 /* ===========================
