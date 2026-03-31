@@ -348,6 +348,35 @@ legend {
 .btn:hover { transform:translateY(-2px); }
 .btn:active { transform:scale(0.97); }
 
+/* ===== 새로 시작 배너 ===== */
+.restart-banner {
+  background: linear-gradient(135deg, #FFF3E0, #FFE0B2);
+  border: 2px solid var(--warm-light);
+  border-radius: var(--radius);
+  padding: 16px 20px;
+  margin-bottom: 16px;
+  text-align: center;
+  box-shadow: var(--shadow);
+  animation: fadeUp 0.45s ease forwards;
+}
+.restart-banner span {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin-bottom: 12px;
+}
+.restart-banner-btns { display: flex; gap: 10px; justify-content: center; }
+.restart-banner-btn {
+  padding: 10px 20px; border: none; border-radius: 10px;
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.2s;
+}
+.restart-banner-btn.continue { background: #F0F0F0; color: var(--text-mid); }
+.restart-banner-btn.continue:hover { background: #E4E4E4; }
+.restart-banner-btn.reset { background: var(--warm); color: white; box-shadow: 0 3px 12px rgba(255,140,66,0.35); }
+.restart-banner-btn.reset:hover { transform: translateY(-2px); }
+
 .toast-msg {
   position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
   background: rgba(45,45,45,0.92); color: white;
@@ -425,6 +454,14 @@ legend {
 
   <!-- ===== STEP 1: 문구 선택 ===== -->
   <div class="screen active" id="screen1" role="main" aria-labelledby="step1-title">
+    <!-- 이전 데이터 존재 시 새로 시작 안내 -->
+    <div class="restart-banner" id="restartBanner" style="display:none;" role="alert">
+      <span>📌 이전에 작업하던 내용이 남아있어요</span>
+      <div class="restart-banner-btns">
+        <button class="restart-banner-btn continue" onclick="dismissBanner()">이어서 하기</button>
+        <button class="restart-banner-btn reset" onclick="resetAll()">🔄 새로 시작</button>
+      </div>
+    </div>
     <div class="guide-card">
       <h2 id="step1-title">✨ 마음에 드는 문구를 골라요!</h2>
       <p>17가지 응원 문구 중에서 <strong>지금 나에게 필요한 말</strong>을 자유롭게 선택해요.<br>여러 개 골라도 좋아요 😊</p>
@@ -1008,8 +1045,9 @@ function init() {
   initCards();
   initTemplates();
 
-  // 저장된 데이터가 있으면 해당 스텝으로 이동
+  // 저장된 데이터가 있으면 배너 표시 후 해당 스텝으로 이동
   if (hasData) {
+    document.getElementById('restartBanner').style.display = 'block';
     renderMyPhrases();
     goStep(currentStep);
   } else {
@@ -1394,10 +1432,19 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 /* ===========================
+   새로 시작 배너 닫기
+=========================== */
+function dismissBanner() {
+  const banner = document.getElementById('restartBanner');
+  if (banner) banner.style.display = 'none';
+}
+
+/* ===========================
    처음부터 다시
 =========================== */
 function resetAll() {
   if (!confirm('처음부터 다시 시작할까요? 선택한 내용이 모두 사라져요.')) return;
+  dismissBanner();
 
   // localStorage 먼저 삭제
   clearStorage();
